@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leegstand Arnhem</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" integrity="sha512-fYyZwU1wU0QWB4Yutd/Pvhy5J1oWAwFXun1pt+Bps04WSe4Aq6tyHlT4+MHSJhD8JlLfgLuC4CbCnX5KHSjyCg==" crossorigin="anonymous" referrerpolicy="no-referrer" /><script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" integrity="sha512-TiMWaqipFi2Vqt4ugRzsF8oRoGFlFFuqIi30FFxEPNw58Ov9mOy6LgC05ysfkxwLE0xVeZtmr92wVg9siAFRWA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0f0f12;
+    --surface: #18181f;
+    --surface2: #22222c;
+    --border: #2e2e3d;
+    --text: #e8e6f0;
+    --text-muted: #7a7a9a;
+    --accent: #f0522a;
+    --accent2: #ffd166;
+    --green: #06d6a0;
+    --blue: #118ab2;
+    --purple: #a855f7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+    z-index: 1000;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 2px;
+  }
+
+  .filter-btn {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .filter-btn:hover:not(.active) {
+    border-color: var(--text-muted);
+    color: var(--text);
+  }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  #map {
+    flex: 1;
+    z-index: 1;
+  }
+
+  /* Override leaflet tiles for dark mode */
+  .leaflet-tile {
+    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+  }
+
+  .sidebar {
+    width: 400px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .sidebar-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+
+  .legend-item:hover { background: var(--surface2); }
+
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  .legend-text {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .legend-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .results-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .result-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .result-item:hover {
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .result-item.selected {
+    background: var(--surface2);
+    border-color: var(--accent);
+  }
+
+  .result-addr {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+
+  .result-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .tag-vacant { background: rgba(240,82,42,0.2); color: #f0522a; }
+  .tag-inuse { background: rgba(6,214,160,0.2); color: #06d6a0; }
+  .tag-unknown { background: rgba(122,122,154,0.2); color: #7a7a9a; }
+  .tag-winkelfunctie { background: rgba(255,209,102,0.2); color: #ffd166; }
+  .tag-kantoorfunctie { background: rgba(168,85,247,0.2); color: #a855f7; }
+  .tag-woonfunctie { background: rgba(17,138,178,0.2); color: #118ab2; }
+
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,15,18,0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    gap: 16px;
+  }
+
+  .loader {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .loading-text strong { color: var(--text); display: block; font-size: 14px; margin-bottom: 4px; }
+
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .info-panel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .info-panel strong { color: var(--text); }
+
+  /* Leaflet popup dark */
+  .leaflet-popup-content-wrapper {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    font-family: 'Syne', sans-serif;
+  }
+
+  .leaflet-popup-tip { background: var(--surface2); }
+
+  .popup-content { padding: 4px 0; }
+  .popup-addr { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .popup-row { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; margin-bottom: 4px; }
+  .popup-key { color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+  .area-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    background: rgba(240,82,42,0.15);
+    border: 1px solid rgba(240,82,42,0.3);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    margin-left: 8px;
+  }
+
+  .pulse-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .source-note {
+    padding: 8px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .methodology-toggle {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .methodology-box {
+    display: none;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .methodology-box.visible { display: block; }
+  .methodology-box strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📍</div>
+    <div>
+      <h1>Leegstand <span>Arnhem</span></h1>
+      <div class="subtitle">BAG · PDOK · Open Data</div>
+    </div>
+  </div>
+  <div class="area-badge">
+    <div class="pulse-dot"></div>
+    Live data
+  </div>
+  <div class="header-controls">
+    <span class="filter-label">Functie:</span>
+    <div class="filter-group" id="functieBtns">
+      <button class="filter-btn active" data-functie="alle">Alle</button>
+      <button class="filter-btn" data-functie="winkelfunctie">Winkels</button>
+      <button class="filter-btn" data-functie="kantoorfunctie">Kantoren</button>
+      <button class="filter-btn" data-functie="woonfunctie">Woningen</button>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <div id="map">
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loader"></div>
+      <div class="loading-text">
+        <strong>Data laden...</strong>
+        <span id="loadingMsg">BAG verblijfsobjecten ophalen via PDOK</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="section-title">Samenvatting</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotaal" style="color: var(--text)">—</div>
+          <div class="stat-label">Totaal panden</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statLeeg" style="color: var(--accent)">—</div>
+          <div class="stat-label">Mogelijk leegstaand</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statPct" style="color: var(--accent2)">—</div>
+          <div class="stat-label">Leegstandsperc.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statNietIngebruik" style="color: var(--purple)">—</div>
+          <div class="stat-label">Niet in gebruik</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">Legenda</div>
+      <div class="legend" id="legend">
+        <div class="legend-item" data-status="vacant">
+          <div class="legend-dot" style="background:#f0522a; color:#f0522a;"></div>
+          <span class="legend-text">Mogelijk leegstaand</span>
+          <span class="legend-count" id="lcVacant">—</span>
+        </div>
+        <div class="legend-item" data-status="nietingebruik">
+          <div class="legend-dot" style="background:#a855f7; color:#a855f7;"></div>
+          <span class="legend-text">Niet in gebruik</span>
+          <span class="legend-count" id="lcNiet">—</span>
+        </div>
+        <div class="legend-item" data-status="inuse">
+          <div class="legend-dot" style="background:#06d6a0; color:#06d6a0;"></div>
+          <span class="legend-text">In gebruik</span>
+          <span class="legend-count" id="lcInuse">—</span>
+        </div>
+        <div class="legend-item" data-status="unknown">
+          <div class="legend-dot" style="background:#4a4a6a; color:#4a4a6a;"></div>
+          <span class="legend-text">Onbekend</span>
+          <span class="legend-count" id="lcUnknown">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <input class="search-input" id="searchInput" type="text" placeholder="Zoek adres of straat..." />
+    </div>
+
+    <div class="results-list" id="resultsList">
+      <div style="padding: 16px; color: var(--text-muted); font-size: 12px; text-align: center; line-height: 1.7;">
+        Klik op een marker op de kaart, of gebruik de zoekbalk om panden te vinden.
+      </div>
+    </div>
+
+    <div class="source-note">
+      Bron: BAG via PDOK — Kadaster &nbsp;|&nbsp;
+      <button class="methodology-toggle" onclick="toggleMethodology()">methode ▸</button>
+    </div>
+    <div class="methodology-box" id="methodologyBox">
+      <strong>Hoe wordt leegstand bepaald?</strong><br/>
+      De BAG registreert de <em>gebruiksstatus</em> van verblijfsobjecten. Panden met status <em>"verblijfsobject gevormd"</em> of <em>"verblijfsobject buiten gebruik"</em> worden als mogelijke leegstand beschouwd. Dit is een proxy-methode — echte leegstand vereist veldonderzoek. Gebruiksstatussen "in gebruik" betekent dat het pand geregistreerd staat als bewoond/in gebruik bij de gemeente.
+    </div>
+  </div>
+</div>
+
+<script>
+// ——————————————————————————————————————————
+// CONFIGURATIE
+// ——————————————————————————————————————————
+const ARNHEM_CENTER = [51.985, 5.898];
+const ARNHEM_GEMEENTECODE = '0202';
+
+// BAG statussen → leegstandcategorie
+const STATUS_MAP = {
+  'Verblijfsobject gevormd': 'vacant',
+  'Verblijfsobject buiten gebruik': 'nietingebruik',
+  'Verblijfsobject in gebruik (niet ingemeten)': 'inuse',
+  'Verblijfsobject in gebruik': 'inuse',
+  'Verblijfsobject ingetrokken': 'vacant',
+  'Niet gerealiseerd verblijfsobject': 'vacant',
+};
+
+const STATUS_COLORS = {
+  vacant: '#f0522a',
+  nietingebruik: '#a855f7',
+  inuse: '#06d6a0',
+  unknown: '#3a3a5a',
+};
+
+// ——————————————————————————————————————————
+// KAART INITIALISEREN
+// ——————————————————————————————————————————
+const map = L.map('map', {
+  center: ARNHEM_CENTER,
+  zoom: 13,
+  zoomControl: true,
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a>, &copy; OpenStreetMap contributors',
+    subdomains: 'abcd'
+}).addTo(map);
+
+// ——————————————————————————————————————————
+// STATE
+// ——————————————————————————————————————————
+let allPanden = [];
+let markers = {};
+let activeFilter = 'alle';
+let activeStatusFilter = null;
+const markerGroup = L.markerClusterGroup({
+    maxClusterRadius: 40
+}).addTo(map);
+let selectedId = null;
+
+// ——————————————————————————————————————————
+// PDOK BAG API FETCHER
+// ——————————————————————————————————————————
+async function fetchBAGPanden(functie = null) {
+  const BASE = 'https://api.pdok.nl/kadaster/bag/ogc/v2/collections/verblijfsobject/items';
+  let allItems = [];
+  const limit = 1000;
+  const maxRecords = 1000000;
+
+  // Bouw initiële URL
+  let params = new URLSearchParams({
+    f: 'json',
+    limit: limit,
+    'bbox': '5.80,51.89,5.97,52.03',
+  });
+
+  if (functie && functie !== 'alle') {
+    params.set('gebruiksdoel', functie);
+  }
+
+  let nextUrl = `${BASE}?${params}`;
+  let page = 1;
+
+  while (nextUrl && allItems.length < maxRecords) {
+    setLoading(`Pagina ${page} laden via PDOK BAG API...`);
+
+    try {
+      const res = await fetch(nextUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (!data.features || data.features.length === 0) break;
+      allItems = allItems.concat(data.features);
+
+      setLoading(`${allItems.length} verblijfsobjecten geladen...`);
+
+      // Check maxRecords
+      if (allItems.length >= maxRecords) break;
+
+      // Volgende pagina
+      const nextLink = data.links?.find(link => link.rel === 'next');
+      nextUrl = nextLink ? nextLink.href : null;
+      page++;
+
+    } catch (e) {
+      console.error('BAG fetch error:', e);
+      break;
+    }
+  }
+
+  return allItems;
+}
+
+// ——————————————————————————————————————————
+// DATA VERWERKEN
+// ——————————————————————————————————————————
+function processPanden(features) {
+  return features.map(f => {
+    const p = f.properties || {};
+    const status = p.status || '';
+    const cat = STATUS_MAP[status] || 'unknown';
+    const coords = f.geometry?.coordinates;
+
+    return {
+      id: f.id || p.identificatie,
+      lat: coords ? coords[1] : null,
+      lng: coords ? coords[0] : null,
+      adres: [p.straatnaam, p.huisnummer, p.huisletter, p.huisnummertoevoeging]
+        .filter(Boolean).join(' '),
+      postcode: p.postcode || '',
+      woonplaats: p.woonplaatsnaam || 'Arnhem',
+      status: status || 'Onbekend',
+      category: cat,
+      gebruiksdoel: (p.gebruiksdoelen || [p.gebruiksdoel]).filter(Boolean).join(', '),
+      oppervlakte: p.oppervlakte || null,
+      bouwjaar: p.bouwjaar || null,
+    };
+  }).filter(p => p.lat && p.lng);
+}
+
+// ——————————————————————————————————————————
+// KAART UPDATEN
+// ——————————————————————————————————————————
+function createMarker(pand) {
+  const color = STATUS_COLORS[pand.category] || STATUS_COLORS.unknown;
+  const size = pand.category === 'vacant' || pand.category === 'nietingebruik' ? 8 : 5;
+  const opacity = pand.category === 'inuse' ? 0.4 : 0.9;
+
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="
+      width:${size}px;height:${size}px;
+      border-radius:50%;
+      background:${color};
+      box-shadow: 0 0 ${size*2}px ${color}80;
+      opacity:${opacity};
+      border: 1px solid ${color}cc;
+    "></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2],
+  });
+
+  const marker = L.marker([pand.lat, pand.lng], { icon });
+
+  marker.on('click', () => {
+    showPopup(pand, marker);
+    highlightListItem(pand.id);
+  });
+
+  return marker;
+}
+
+function showPopup(pand, marker) {
+  const color = STATUS_COLORS[pand.category];
+  const tagClass = pand.category === 'vacant' ? 'tag-vacant' :
+                   pand.category === 'nietingebruik' ? '' :
+                   pand.category === 'inuse' ? 'tag-inuse' : 'tag-unknown';
+
+  const popup = L.popup({ maxWidth: 280 }).setContent(`
+    <div class="popup-content">
+      <div class="popup-addr">${pand.adres || 'Onbekend adres'}</div>
+      <div class="popup-row">
+        <span class="popup-key">Postcode</span>
+        <span>${pand.postcode} ${pand.woonplaats}</span>
+      </div>
+      <div class="popup-row">
+        <span class="popup-key">Status</span>
+        <span style="color:${color}">${pand.status}</span>
+      </div>
+      <div class="popup-row">
+        <span class="popup-key">Gebruiksdoel</span>
+        <span>${pand.gebruiksdoel || '—'}</span>
+      </div>
+      ${pand.oppervlakte ? `<div class="popup-row"><span class="popup-key">Oppervlakte</span><span>${pand.oppervlakte} m²</span></div>` : ''}
+      ${pand.bouwjaar ? `<div class="popup-row"><span class="popup-key">Bouwjaar</span><span>${pand.bouwjaar}</span></div>` : ''}
+    </div>
+  `);
+  marker.bindPopup(popup).openPopup();
+}
+
+function renderMarkers(panden) {
+  markerGroup.clearLayers();
+  markers = {};
+
+  // Render in gebruik eerst (zodat leegstand bovenop ligt)
+  const sorted = [...panden].sort((a, b) => {
+    const order = { inuse: 0, unknown: 1, nietingebruik: 2, vacant: 3 };
+    return (order[a.category] || 0) - (order[b.category] || 0);
+  });
+
+  sorted.forEach(pand => {
+    const m = createMarker(pand);
+    markerGroup.addLayer(m);
+    markers[pand.id] = { marker: m, pand };
+  });
+}
+
+function getFilteredPanden() {
+  return allPanden.filter(p => {
+    if (activeFilter !== 'alle') {
+      if (!p.gebruiksdoel.toLowerCase().includes(activeFilter)) return false;
+    }
+    if (activeStatusFilter) {
+      if (p.category !== activeStatusFilter) return false;
+    }
+    return true;
+  });
+}
+
+// ——————————————————————————————————————————
+// STATISTIEKEN
+// ——————————————————————————————————————————
+function updateStats(panden) {
+  const totaal = panden.length;
+  const leeg = panden.filter(p => p.category === 'vacant').length;
+  const niet = panden.filter(p => p.category === 'nietingebruik').length;
+  const inuse = panden.filter(p => p.category === 'inuse').length;
+  const unknown = panden.filter(p => p.category === 'unknown').length;
+  const pct = totaal > 0 ? ((leeg + niet) / totaal * 100).toFixed(1) : '—';
+
+  document.getElementById('statTotaal').textContent = totaal.toLocaleString('nl');
+  document.getElementById('statLeeg').textContent = leeg.toLocaleString('nl');
+  document.getElementById('statPct').textContent = pct + '%';
+  document.getElementById('statNietIngebruik').textContent = niet.toLocaleString('nl');
+  document.getElementById('lcVacant').textContent = leeg.toLocaleString('nl');
+  document.getElementById('lcNiet').textContent = niet.toLocaleString('nl');
+  document.getElementById('lcInuse').textContent = inuse.toLocaleString('nl');
+  document.getElementById('lcUnknown').textContent = unknown.toLocaleString('nl');
+}
+
+// ——————————————————————————————————————————
+// LIJST
+// ——————————————————————————————————————————
+function renderList(panden) {
+  const list = document.getElementById('resultsList');
+  const vakantPanden = panden
+    .filter(p => p.category === 'vacant' || p.category === 'nietingebruik')
+    .slice(0, 100);
+
+  if (vakantPanden.length === 0) {
+    list.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:12px;text-align:center">Geen leegstaande panden gevonden in selectie.</div>';
+    return;
+  }
+
+  list.innerHTML = `<div style="padding:8px 12px 4px;font-family:'DM Mono',monospace;font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Leegstaande panden (${vakantPanden.length})</div>` +
+    vakantPanden.map(p => {
+      const color = STATUS_COLORS[p.category];
+      const tagLabel = p.category === 'vacant' ? 'Leeg' : 'Niet in gebruik';
+      return `
+        <div class="result-item" data-id="${p.id}" onclick="selectPand('${p.id}')">
+          <div class="result-addr">${p.adres || 'Onbekend adres'}</div>
+          <div class="result-meta">
+            <span style="color:${color};font-size:10px">● ${tagLabel}</span>
+            ${p.gebruiksdoel ? `<span>${p.gebruiksdoel.split(',')[0]}</span>` : ''}
+            ${p.oppervlakte ? `<span>${p.oppervlakte}m²</span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+}
+
+function selectPand(id) {
+  const entry = markers[id];
+  if (!entry) return;
+  map.panTo([entry.pand.lat, entry.pand.lng], { animate: true });
+  map.setZoom(17);
+  showPopup(entry.pand, entry.marker);
+  highlightListItem(id);
+}
+
+function highlightListItem(id) {
+  document.querySelectorAll('.result-item').forEach(el => el.classList.remove('selected'));
+  const el = document.querySelector(`.result-item[data-id="${id}"]`);
+  if (el) { el.classList.add('selected'); el.scrollIntoView({ block: 'nearest' }); }
+}
+
+// ——————————————————————————————————————————
+// ZOEKEN
+// ——————————————————————————————————————————
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase().trim();
+  if (!q) {
+    renderList(getFilteredPanden());
+    return;
+  }
+  const matches = allPanden.filter(p =>
+    (p.adres && p.adres.toLowerCase().includes(q)) ||
+    (p.postcode && p.postcode.toLowerCase().includes(q))
+  );
+  renderList(matches);
+  if (matches.length > 0 && markers[matches[0].id]) {
+    const first = markers[matches[0].id];
+    map.panTo([first.pand.lat, first.pand.lng]);
+  }
+});
+
+// ——————————————————————————————————————————
+// FILTERS
+// ——————————————————————————————————————————
+document.getElementById('functieBtns').addEventListener('click', (e) => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = btn.dataset.functie;
+  refresh();
+});
+
+document.querySelectorAll('.legend-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const status = item.dataset.status;
+    if (activeStatusFilter === status) {
+      activeStatusFilter = null;
+      item.style.background = '';
+    } else {
+      activeStatusFilter = status;
+      document.querySelectorAll('.legend-item').forEach(i => i.style.background = '');
+      item.style.background = 'var(--surface2)';
+    }
+    refresh();
+  });
+});
+
+function refresh() {
+  const filtered = getFilteredPanden();
+  renderMarkers(filtered);
+  updateStats(filtered);
+  renderList(filtered);
+}
+
+// ——————————————————————————————————————————
+// LOADING HELPERS
+// ——————————————————————————————————————————
+function setLoading(msg) {
+  document.getElementById('loadingMsg').textContent = msg;
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function toggleMethodology() {
+  document.getElementById('methodologyBox').classList.toggle('visible');
+}
+
+// ——————————————————————————————————————————
+// MAIN INIT
+// ——————————————————————————————————————————
+async function init() {
+  try {
+    setLoading('Verblijfsobjecten ophalen via BAG / PDOK...');
+    const features = await fetchBAGPanden();
+
+    if (features.length === 0) {
+      setLoading('Geen data ontvangen — probeer de pagina te herladen.');
+      return;
+    }
+
+    setLoading(`${features.length} panden verwerken...`);
+    allPanden = processPanden(features);
+
+    hideLoading();
+    refresh();
+
+  } catch(err) {
+    console.error(err);
+    setLoading('Fout bij laden. Controleer je internetverbinding en herlaad de pagina.');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
