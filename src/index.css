@@ -1,89 +1,86 @@
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif
-  }
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0)
+    /* App dark theme */
+    --bg: #0f0f12;
+    --surface: #18181f;
+    --surface2: #22222c;
+    --border-color: #2e2e3d;
+    --text: #e8e6f0;
+    --text-muted: #7a7a9a;
+    --brand: #f0522a;
+
+    /* ShadCN HSL tokens mapped to dark theme */
+    --background: 240 4% 7%;
+    --foreground: 248 25% 93%;
+    --card: 240 6% 11%;
+    --card-foreground: 248 25% 93%;
+    --popover: 240 8% 14%;
+    --popover-foreground: 248 25% 93%;
+    --primary: 16 85% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 8% 16%;
+    --secondary-foreground: 248 25% 93%;
+    --muted: 240 8% 16%;
+    --muted-foreground: 240 12% 57%;
+    --accent: 240 8% 16%;
+    --accent-foreground: 248 25% 93%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 15% 20%;
+    --input: 240 15% 20%;
+    --ring: 16 85% 55%;
+    --radius: 0.5rem;
   }
-  .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0)
-  }
+
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border box-border;
+    margin: 0;
+    padding: 0;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
   }
+
   html {
-    @apply font-sans;
+    height: 100%;
+  }
+
+  #root {
+    height: 100%;
   }
 }
+
+/* MapLibre popup dark theme */
+.maplibregl-popup-content {
+  background: var(--surface2) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  color: var(--text) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  padding: 12px 14px !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: var(--surface2) !important;
+  border-bottom-color: var(--surface2) !important;
+}
+
+.maplibregl-popup-close-button {
+  color: var(--text-muted) !important;
+  font-size: 16px !important;
+  padding: 4px 8px !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
