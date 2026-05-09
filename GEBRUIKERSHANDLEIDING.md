@@ -82,7 +82,6 @@ De applicatie gebruikt de **PDOK BAG API** om verblijfsobjecten op te halen voor
 ## Beperkingen
 
 - Alleen Arnhem gebied (hardcoded bounding box)
-- Maximaal 1000 panden per functie-filter
 - Geen offline functionaliteit
 - Data afhankelijk van PDOK API beschikbaarheid
 
