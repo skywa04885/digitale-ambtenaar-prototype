@@ -1,0 +1,67 @@
+[
+  {
+    "id": "73ab9561-acac-49dd-97ad-17ceda7de048",
+    "createdAt": "2026-05-21T12:50:38.181Z",
+    "profile": {
+      "fullName": "Luke Rieff",
+      "birthYear": "2004",
+      "municipality": "Cuijk",
+      "currentHousing": "",
+      "householdType": "Alleenstaande ouder",
+      "householdSize": "1",
+      "currentRooms": "",
+      "monthlyIncome": "",
+      "monthlyRent": "",
+      "rentArrears": "nee",
+      "homelessRisk": "nee",
+      "evictionNotice": "nee",
+      "safetyIssue": "nee",
+      "medicalUrgency": "nee",
+      "careNeed": "Geen",
+      "accessibilityNeed": "nee",
+      "supportNetwork": "",
+      "underutilizedHome": "nee",
+      "moveWillingness": "Onbekend",
+      "preferredHousing": "",
+      "notes": ""
+    },
+    "derivedProfile": {
+      "woonbehoefte": "Sociale huurwoning",
+      "betaalbaarheid": "Onvoldoende gegevens",
+      "zorgbehoefte": "Geen specifieke zorgvraag ingevuld",
+      "verhuispotentie": "Laag",
+      "leefbaarheid": "Onbekend",
+      "kernadvies": "Reguliere match en herbeoordeling plannen."
+    },
+    "assessment": {
+      "urgencyScore": 0,
+      "riskLevel": "Laag",
+      "doorstromingScore": 0,
+      "rentRatio": null,
+      "riskAreas": [
+        {
+          "name": "Woonzekerheid",
+          "level": "Laag",
+          "text": "Geen acute wooncrisis op basis van huidige invoer."
+        },
+        {
+          "name": "Betaalbaarheid",
+          "level": "Laag",
+          "text": "Nog onvoldoende financiele gegevens."
+        },
+        {
+          "name": "Zorg en toegankelijkheid",
+          "level": "Laag",
+          "text": "Geen zware zorgsignalen ingevuld."
+        },
+        {
+          "name": "Gezin en veiligheid",
+          "level": "Laag",
+          "text": "Geen zwaar passendheidsrisico ingevuld."
+        }
+      ],
+      "flags": [],
+      "breakdown": []
+    }
+  }
+]

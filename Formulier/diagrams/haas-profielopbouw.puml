@@ -1,0 +1,52 @@
+@startuml
+title HaaS - Van toegankelijke intake naar menselijk besluit
+
+scale max 1600x900
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 34
+skinparam ranksep 34
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam ArrowColor #37474F
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #37474F
+  FontColor #1F2933
+  RoundCorner 12
+}
+skinparam database {
+  BackgroundColor #EAF2F8
+  BorderColor #455A64
+  FontColor #1F2933
+}
+
+actor "Woning-\nzoekende" as Burger
+rectangle "1. Toegankelijke website\n\nB1 taal | voorlezen | hulpmodus\nsamenvatting en correctie" as Website #E8F5E9
+rectangle "2. AI-vragenroute\n\nrelevante vervolgvragen\ncontrole op ontbrekende info" as AI #FFF8E1
+rectangle "3. HaaS-profiel\n\nwoonbehoefte | betaalbaarheid\nzorg | verhuispotentie | risico" as Profiel #FFF8E1
+rectangle "4. Dashboard\n\nadvies met bronnen\nonzekerheden en signalen" as Dashboard #E3F2FD
+actor "Ambtenaar" as Ambtenaar
+rectangle "5. Menselijk besluit\n\nbeoordelen | motiveren\nactie vastleggen" as Besluit #E3F2FD
+
+database "Toegestane data\n\nwoning | inkomen | gezin\nzorg | leefbaarheid" as Data
+rectangle "Uitkomsten\n\nbetere match | doorstroming\ncrisis eerder signaleren\ncommunity | noodopvang voorkomen" as Uitkomsten #FFEBEE
+rectangle "Toezicht en verbetering\n\nbiascontrole | bezwaar\neffectmeting" as Toezicht #F3E5F5
+
+Burger -right-> Website
+Website -right-> AI
+AI -right-> Profiel
+
+Data -up-> Profiel : verrijkt
+Profiel -down-> Dashboard
+Dashboard -right-> Ambtenaar
+Ambtenaar -right-> Besluit
+Besluit -down-> Uitkomsten
+Uitkomsten -left-> Toezicht
+Toezicht ..up..> AI : verbeteren
+
+note bottom
+AI ondersteunt en verklaart; de ambtenaar blijft verantwoordelijk voor het besluit.
+end note
+@enduml
